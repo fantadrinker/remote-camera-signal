@@ -14,6 +14,10 @@ COPY . .
 
 ENV PORT=3000
 
+ENV SSL_PATH=/etc/ssl/certs
+
 EXPOSE 3000
 
-CMD [ "node", "app.js" ]
+RUN npm run build
+
+CMD [ "node", "dist/app.js" ]

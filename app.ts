@@ -46,8 +46,9 @@ app.get('/numbers', (req, res) => {
 })
 
 if (process.env.ENABLE_HTTPS) {
-  const privateKey = fs.readFileSync('/etc/ssl/certs/lws-sig-serv.key', 'utf8')
-  const certificate = fs.readFileSync('/etc/ssl/certs/lws-sig-serv.crt', 'utf8')
+  const sslPath = process.env.SSL_PATH || '/etc/ssl/certs'
+  const privateKey = fs.readFileSync(`${sslPath}/lws-sig-serv.key`, 'utf8')
+  const certificate = fs.readFileSync(`${sslPath}/lws-sig-serv.crt`, 'utf8')
   const credentials = { key: privateKey, cert: certificate }
   const httpsServer = https.createServer(credentials, app)
   httpsServer.listen(443, () => {
