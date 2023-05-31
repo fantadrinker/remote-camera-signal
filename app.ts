@@ -47,6 +47,19 @@ if (process.env.ENABLE_HTTPS) {
   })
   wss.on('connection', ws => {
     console.log('Client connected.')
+    switch (ws.protocol) {
+      case 'echo-protocol':
+        console.log('echo-protocol')
+        break
+      case 'broadcast-protocol':
+        console.log('broadcast-protocol')
+        break
+      case 'viewer-protocol':
+        console.log('viewer-protocol')
+        break
+      default:
+        console.log('default')
+        break
     ws.send(JSON.stringify({ message: 'Hello from server!' }))
     ws.on('message', msg => {
       console.log('Client said: ' + msg.toString());
