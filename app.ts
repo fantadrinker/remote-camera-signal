@@ -1,11 +1,17 @@
 import express, { Request, Response } from 'express'
 import https from 'https'
 import fs from 'fs'
-import {Server as WSServer} from 'ws'
+import { Server as WSServer } from 'ws'
 import 'dotenv/config'
-import {randomUUID} from 'crypto'
-import { newBroadcast, newViewer, sendMessageToViewer, sendMessageToBroadcaster } from './handler'
-
+import { randomUUID } from 'crypto'
+import {
+  newBroadcast,
+  newViewer,
+  sendMessageToViewer,
+  sendMessageToBroadcaster,
+  deleteViewer,
+  deleteBroadcast,
+} from './handler'
 
 const app = express()
 const port = process.env.PORT || 3000
@@ -16,7 +22,6 @@ const VIEWER_JOIN = 2
 const VIEWER_MESSAGE = 3
 
 const array: Array<number> = []
-
 
 function delay(ms: number) {
   return new Promise(resolve => {
@@ -65,13 +70,18 @@ if (process.env.ENABLE_HTTPS) {
           switch (msgObj.message_type) {
             case BROADCASTER_INIT:
               console.log('broadcaster-init')
-              const eventListener = newBroadcast(msgObj.broadcast_id)
+              const eventListener = newBroadcast(msgObj.broadcast_id, wsid)
               eventListener.on('message', msg => {
                 console.log(`broadcaster event fired, ${ws.readyState}`)
                 console.log(msg)
                 ws.send(msg)
               })
-              ws.send(JSON.stringify({ message_type: 'broadcast_created', broadcast_id: msgObj.broadcast_id }))
+              ws.send(
+                JSON.stringify({
+                  message_type: 'broadcast_created',
+                  broadcast_id: msgObj.broadcast_id,
+                })
+              )
               break
             case BROADCASTER_MESSAGE:
               console.log('broadcaster-message')
@@ -79,12 +89,18 @@ if (process.env.ENABLE_HTTPS) {
               // fire an event to send message to viewer
               sendMessageToViewer(session_id, msg.toString())
               // Find viewer session
-              ws.send(JSON.stringify({ message_type: 'broadcast_message_queued' }))
+              ws.send(
+                JSON.stringify({ message_type: 'broadcast_message_queued' })
+              )
               break
             default:
               console.log('unrecognized message type')
               break
           }
+        })
+        ws.on('close', () => {
+          console.log('viewer connection closed')
+          deleteBroadcast(wsid)
         })
         break
       case 'viewer-protocol':
@@ -95,11 +111,10 @@ if (process.env.ENABLE_HTTPS) {
           switch (msgObj.message_type) {
             case VIEWER_JOIN:
               console.log('viewer-join')
-              const {
-                id, 
-                eventSource
-              } = newViewer(msgObj.broadcast_id)
-              ws.send(JSON.stringify({ message_type: "session_created", payload: id }))
+              const { id, eventSource } = newViewer(msgObj.broadcast_id, wsid)
+              ws.send(
+                JSON.stringify({ message_type: 'session_created', payload: id })
+              )
               eventSource.on('message', msg => {
                 console.log(`viewer event fired, ${ws.readyState}`)
                 console.log(msg)
@@ -117,15 +132,19 @@ if (process.env.ENABLE_HTTPS) {
               break
           }
         })
+        ws.on('close', () => {
+          console.log('viewer connection closed')
+          deleteViewer(wsid)
+        })
         break
       default:
         console.log('default')
         break
     }
     ws.on('message', msg => {
-      console.log('Client said: ' + msg.toString());
+      console.log('Client said: ' + msg.toString())
     })
-  });
+  })
 } else {
   app.listen(port, () => {
     console.log(`Example app listening on port ${port}`)
