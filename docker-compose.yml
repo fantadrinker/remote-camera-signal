@@ -7,5 +7,4 @@ services:
       - /etc/ssl/certs:/etc/ssl/certs
   coturn:
     image: coturn/coturn
-    networks:
-      - default
+    network_mode: "host"
