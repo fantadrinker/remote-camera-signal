@@ -101,11 +101,11 @@ if (process.env.ENABLE_HTTPS) {
             }
           } catch (error) {
             console.log(error)
-            ws.send(JSON.stringify({ message_type: 'error', error }))
+            ws.send(JSON.stringify({ message_type: 'error', payload: error }))
           }
         })
         ws.on('close', () => {
-          console.log('viewer connection closed')
+          console.log('broadcaster connection closed')
           deleteBroadcast(wsid)
         })
         break
@@ -123,8 +123,6 @@ if (process.env.ENABLE_HTTPS) {
                   JSON.stringify({ message_type: 'session_created', payload: id })
                 )
                 eventSource.on('message', msg => {
-                  console.log(`viewer event fired, ${ws.readyState}`)
-                  console.log(msg)
                   ws.send(msg)
                 })
                 break
@@ -140,7 +138,7 @@ if (process.env.ENABLE_HTTPS) {
             }
           } catch (error) {
             console.log(error)
-            ws.send(JSON.stringify({ message_type: 'error', error }))
+            ws.send(JSON.stringify({ message_type: 'error', payload: error }))
           }
         })
         ws.on('close', () => {
