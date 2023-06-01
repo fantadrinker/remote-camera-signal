@@ -38,7 +38,8 @@ export const deleteBroadcast = (wsid: string) => {
     key => Broadcasts[key].wsid === wsid
   )
   if (!broadcast) {
-    throw new Error('Broadcast not found')
+    console.error('Broadcast not found')
+    return
   }
   delete Broadcasts[broadcast]
 }
@@ -70,7 +71,8 @@ export const deleteViewer = (wsid: string) => {
     key => BroadcastSessions[key].wsid === wsid
   )
   if (!viewer) {
-    throw new Error('Viewer not found')
+    console.error('Viewer not found')
+    return
   }
   delete BroadcastSessions[viewer]
 }
